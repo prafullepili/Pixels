@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { theme } from '../../constants/theme';
@@ -7,16 +7,17 @@ import { wp, hp } from "../../helpers/common";
 import Categories from "../../components/categories";
 import { apiCall } from "../../api";
 import ImageGrid from "../../components/imageGrid";
+import { debounce, set } from 'lodash'
 
-
+var page = 1;
 export default HomeScreen = () => {
     const { top } = useSafeAreaInsets();
     const paddingTop = top > 0 ? top + 10 : 30;
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState(null);
+
     const [images, setImages] = useState([]);
     const searchInputRef = useRef();
-
     useEffect(() => {
         fetchImages();
     }, [])
@@ -31,11 +32,46 @@ export default HomeScreen = () => {
             }
         }
     }
-
+    const clearSearch = () => {
+        setSearch('');
+        searchInputRef?.current?.clear();
+    }
     const handleChangeCategory = (category) => {
         setActiveCategory(category);
+        setImages([]);
+        page = 1;
+        let params = {
+            page,
+            q: search
+        }
+        if (category) {
+            params.category = category;
+        }
+        fetchImages(params, false);
     }
 
+    function handleSearch(text) {
+        setSearch(text);
+        let params = {
+            q: text,
+            page
+        }
+        if (this.activeCategory) params.category = this.activeCategory;
+        if (activeCategory) params.category = activeCategory;
+        if (text.length > 2) {
+            page = 1
+            setImages([]);
+            fetchImages({ ...params }, false)
+        }
+        if (text == "") {
+            page = 1
+            searchInputRef?.current?.clear();
+            setImages([]);
+            fetchImages({ ...params }, false)
+        }
+    }
+
+    const handleTextDebounce = useCallback(debounce(handleSearch, 500), [])
     return (
         <View style={[styles.container, { paddingTop }]}>
             <View style={styles.header}>
@@ -47,16 +83,18 @@ export default HomeScreen = () => {
                 </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ gap: 10 }}>
+                {/* serach bar */}
                 <View style={styles.searchBar}>
                     <View style={styles.searchIcon}>
                         <Feather name="search" size={24} color={theme.colors.neutral(0.4)} />
                     </View>
-                    <TextInput ref={searchInputRef} value={search} onChangeText={value => setSearch(value)} style={styles.searchInput} placeholder="Serach for photos..." />
-                    {search && (<Pressable style={styles.closeIcon}>
+                    <TextInput ref={searchInputRef} onChangeText={handleTextDebounce.bind({ activeCategory })} style={styles.searchInput} placeholder="Serach for photos..." />
+                    {search && (<Pressable style={styles.closeIcon} onPress={() => handleSearch('')}>
                         <Ionicons name="close" size={24} color={theme.colors.neutral(0.6)} />
                     </Pressable>)
                     }
                 </View>
+
                 <View style={styles.categories}>
                     <Categories activeCategory={activeCategory} handleChangeCategory={handleChangeCategory} />
                 </View>
