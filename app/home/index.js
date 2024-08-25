@@ -8,6 +8,8 @@ import Categories from "../../components/categories";
 import { apiCall } from "../../api";
 import ImageGrid from "../../components/imageGrid";
 import { debounce, set } from 'lodash'
+import { Platform } from 'react-native';
+
 
 var page = 1;
 export default HomeScreen = () => {
@@ -141,11 +143,13 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: theme.radius.sm,
         paddingVertical: 10,
-        fontSize: hp(1.8)
+        fontSize: hp(1.8),
+        paddingLeft: Platform.OS === 'web' && 10,
     },
     closeIcon: {
         backgroundColor: theme.colors.neutral(0.1),
         padding: 8,
-        borderRadius: theme.radius.sm
+        borderRadius: theme.radius.sm,
+        marginLeft: 10
     }
 })
