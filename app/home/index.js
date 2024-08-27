@@ -10,6 +10,7 @@ import ImageGrid from "../../components/imageGrid";
 import { debounce, set } from 'lodash'
 import { Platform } from 'react-native';
 import FiltersModal from "../../components/filtersModal";
+import { act } from "react";
 
 
 var page = 1;
@@ -19,15 +20,17 @@ export default HomeScreen = () => {
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState(null);
     const [filters, setFilters] = useState(null);
+    const [isEndReached, setIsEndReached] = useState(false);
 
     const [images, setImages] = useState([]);
     const searchInputRef = useRef(null);
     const modalRef = useRef(null);
+    const scrollRef = useRef(null);
     useEffect(() => {
         fetchImages();
     }, [])
 
-    const fetchImages = async (params = { page: 1 }, append = false) => {
+    const fetchImages = async (params = { page: 1 }, append = true) => {
         let res = await apiCall(params);
         if (res.success && res?.data?.hits) {
             if (append) {
@@ -132,10 +135,37 @@ export default HomeScreen = () => {
         if (search) params.q = search;
         fetchImages(params, false);
     }
+    const handleScroll = (event) => {
+        const contentHeight = event.nativeEvent.contentSize.height;
+        const scrollViewHeight = event.nativeEvent.layoutMeasurement.height;
+        const scrollOffset = event.nativeEvent.contentOffset.y;
+        const bottomPosition = contentHeight - scrollViewHeight;
+
+        if (scrollOffset >= bottomPosition - 1) {
+            if (!isEndReached) {
+                setIsEndReached(true);
+                ++page;
+                let params = {
+                    page,
+                    ...filters,
+                }
+                if (activeCategory) params.category = activeCategory;
+                if (search) params.q = search;
+                fetchImages(params);
+            }
+        } else if (isEndReached) {
+            setIsEndReached(false);
+        }
+    }
+    const handleScrollUp = () => {
+        scrollRef?.current?.scrollTo({
+            y: 0, animated: true
+        })
+    }
     return (
         <View style={[styles.container, { paddingTop }]}>
             <View style={styles.header}>
-                <Pressable>
+                <Pressable onPress={handleScrollUp}>
                     <Text style={styles.title}>Pixels</Text>
                 </Pressable>
                 {/*Top Menu button */}
@@ -143,7 +173,12 @@ export default HomeScreen = () => {
                     <FontAwesome6 name="bars-staggered" size={22} color={theme.colors.neutral(0.7)} />
                 </Pressable>
             </View>
-            <ScrollView contentContainerStyle={{ gap: 10 }}>
+            <ScrollView
+                onScroll={handleScroll}
+                scrollEventThrottle={10} //how often scroll event will fire scrolling  (in ms)
+                contentContainerStyle={{ gap: 10 }}
+                ref={scrollRef}
+            >
                 {/* serach bar */}
                 <View style={styles.searchBar}>
                     <View style={styles.searchIcon}>
