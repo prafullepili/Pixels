@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router'
 export default WelcomeScreen = () => {
     const route = useRouter();
     return <View style={styles.container}>
-        <StatusBar style='dark' />
+
         <Image source={require('../assets/welcome.png')} style={styles.bgImage} resizeMode='cover' />
         <Animated.View entering={FadeInDown.duration(600)} style={{ flex: 1 }}>
             <LinearGradient

@@ -15,7 +15,7 @@ const ImageCard = ({ item, index, columns }) => {
     }
     return (
         <Pressable style={[styles.imageWrapper, !isLastInRow() && styles.spacing]}>
-            <Image style={[styles.image, getImageHeight()]} source={{ uri: item?.webformatURL }} transition={100} />
+            <Image style={[styles.image, getImageHeight()]} source={{ uri: item?.webformatURL }} transition={1000} />
         </Pressable>
     )
 }
