@@ -1,9 +1,9 @@
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { theme } from '../../constants/theme';
-import { wp, hp } from "../../helpers/common";
+import { wp, hp, capitalize } from "../../helpers/common";
 import Categories from "../../components/categories";
 import { apiCall } from "../../api";
 import ImageGrid from "../../components/imageGrid";
@@ -118,6 +118,20 @@ export default HomeScreen = () => {
         }
         closeFiltersModal();
     }
+    const clearThisFilter = (filterName) => {
+        let filterZ = { ...filters };
+        delete filterZ[filterName];
+        setFilters({ ...filterZ });
+        page = 1;
+        setImages([]);
+        let params = {
+            page,
+            ...filterZ
+        }
+        if (activeCategory) params.category = activeCategory;
+        if (search) params.q = search;
+        fetchImages(params, false);
+    }
     return (
         <View style={[styles.container, { paddingTop }]}>
             <View style={styles.header}>
@@ -145,8 +159,34 @@ export default HomeScreen = () => {
                 <View style={styles.categories}>
                     <Categories activeCategory={activeCategory} handleChangeCategory={handleChangeCategory} />
                 </View>
+                {
+                    /* filters */
+                    filters && (
+                        <View>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+                                {Object.keys(filters).map((key, index) => {
+                                    let color = key == 'colors' ? ((['yellow', 'pink'].includes(filters[key])) ? 'black' : 'white') : 'black'
+                                    return (
+                                        <View key={key} style={[styles.filterItem, { backgroundColor: filters[key] }]}>
+                                            <Text style={[styles.filterItemText, { color }]}>{capitalize(filters[key])}</Text>
+                                            <Pressable style={styles.filterCloseIcon} onPress={() => clearThisFilter(key)}>
+                                                <Ionicons name="close" size={14} color={color} />
+                                            </Pressable>
+                                        </View>
+                                    )
+                                })}
+                            </ScrollView>
+                        </View>
+                    )
+                }
+                {/* images masonary grid */}
                 <View>
                     {images.length > 0 && <ImageGrid images={images} />}
+                </View>
+
+                {/* loading */}
+                <View style={{ marginBottom: 70, marginTop: images.length > 0 ? 10 : 70 }}>
+                    <ActivityIndicator size='large' />
                 </View>
             </ScrollView>
 
@@ -199,5 +239,31 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: theme.radius.sm,
         marginLeft: 10
+    },
+    filters: {
+        paddingHorizontal: wp(4),
+        gap: 10,
+    },
+    filterItem: {
+        backgroundColor: theme.colors.grayBG,
+        padding: 3,
+        flexDirection: 'row',
+        borderRadius: theme.radius.xs,
+        padding: 6,
+        gap: 10,
+        paddingHorizontal: 10,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: theme.colors.neutral(0.3)
+    },
+    filterItemText: {
+        fontSize: hp(1.3),
+    },
+    filterCloseIcon: {
+        backgroundColor: theme.colors.neutral(0.2),
+        padding: 4,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: 'white',
     }
 })
