@@ -179,6 +179,7 @@ export default HomeScreen = () => {
                     <FontAwesome6 name="bars-staggered" size={22} color={theme.colors.neutral(0.7)} />
                 </Pressable>
             </View>
+
             <ScrollView
                 onScroll={handleScroll}
                 scrollEventThrottle={10} //how often scroll event will fire scrolling  (in ms)

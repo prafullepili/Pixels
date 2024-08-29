@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import React, { useMemo } from "react";
 import { BlurView } from "expo-blur";
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
     contentContainer: {
         flex: 1,
         alignItems: 'center',
+        overflow: 'scroll',
     },
     filterContainer: {
         gap: 15
@@ -120,6 +121,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 15,
+        marginTop: Platform.OS == 'web' ? 30 : 0,
+        paddingBottom: Platform.OS == 'web' ? 50 : 0,
     },
     applyButton: {
         flex: 1,

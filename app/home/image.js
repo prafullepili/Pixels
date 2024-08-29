@@ -34,6 +34,12 @@ const ImageScreen = () => {
         if (aspectRatio < 1) {
             calculatedWidth = calculatedHeight * aspectRatio;
         }
+        if (Platform.OS == 'web') {
+            return {
+                width: `${item.imageWidth / 10}px`,
+                height: `${item.imageHeight / 10}px`
+            }
+        }
         return {
             width: calculatedWidth,
             height: calculatedHeight,
@@ -41,15 +47,27 @@ const ImageScreen = () => {
     }
 
     const handleDownloadImage = async () => {
+        if (Platform.OS == 'web') {
+            const anchor = document.createElement('a');
+            anchor.href = imageUrl;
+            anchor.target = '_blank';
+            anchor.download = fileName || 'download';
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            return;
+        }
         setStatus('downloading');
         let uri = await downloadFile();
-
         if (uri) {
             showToast('Image downloaded')
         }
     }
     const handleShareImage = async () => {
-        console.log('Hello Sharing')
+        if (Platform.OS == 'web') {
+            showToast('Link copied');
+            return;
+        }
         setStatus('sharing');
         let uri = await downloadFile();
         if (uri) {
@@ -133,12 +151,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: wp(4),
         backgroundColor: theme.colors.white,
+        overflow: Platform.OS == 'web' ? 'scroll' : 'hidden',
+        paddingVertical: Platform.OS == 'web' ? 50 : 0,
     },
     image: {
         borderRadius: theme.radius.lg,
         borderWidth: 2,
         backgroundColor: 'rgba(255,255,255,0.1)',
-        borderColor: 'rgba(255,255,255,0.1)'
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     loading: {
         position: 'absolute',

@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable, Platform } from 'react-native';
 import React from 'react';
 import { data } from '../constants/data';
 import { hp, wp } from '../helpers/common';
@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         borderWidth: 1,
         borderColor: theme.colors.grayBG,
-        // backgroundColor: theme.colors.white,
         borderRadius: theme.radius.lg,
-        borderCurve: 'continuous'
+        borderCurve: 'continuous',
+        marginVertical: Platform.OS == 'web' ? 10 : 0,
     },
     title: {
         fontSize: hp(1.8),
