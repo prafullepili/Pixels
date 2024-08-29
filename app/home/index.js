@@ -11,6 +11,7 @@ import { debounce, set } from 'lodash'
 import { Platform } from 'react-native';
 import FiltersModal from "../../components/filtersModal";
 import { act } from "react";
+import { useRouter } from "expo-router";
 
 
 var page = 1;
@@ -26,17 +27,23 @@ export default HomeScreen = () => {
     const searchInputRef = useRef(null);
     const modalRef = useRef(null);
     const scrollRef = useRef(null);
+    const router = useRouter();
+    const [status, setStatus] = useState('loading');
+
     useEffect(() => {
         fetchImages();
     }, [])
-
     const fetchImages = async (params = { page: 1 }, append = true) => {
         let res = await apiCall(params);
         if (res.success && res?.data?.hits) {
             if (append) {
+                if (res?.data?.hits.length === 0) {
+                    setStatus('');
+                }
                 setImages([...images, ...res.data.hits])
             } else {
                 setImages([...res.data.hits])
+                setStatus('');
             }
         }
     }
@@ -58,7 +65,6 @@ export default HomeScreen = () => {
         }
         fetchImages(params, false);
     }
-
     function handleSearch(text) {
         setSearch(text);
         let params = {
@@ -85,7 +91,6 @@ export default HomeScreen = () => {
         }
     }
     const handleTextDebounce = useCallback(debounce(handleSearch, 500), [])
-
     const openFiltersModal = () => {
         modalRef?.current?.present();
     }
@@ -143,6 +148,7 @@ export default HomeScreen = () => {
 
         if (scrollOffset >= bottomPosition - 1) {
             if (!isEndReached) {
+                setStatus('loading')
                 setIsEndReached(true);
                 ++page;
                 let params = {
@@ -216,12 +222,12 @@ export default HomeScreen = () => {
                 }
                 {/* images masonary grid */}
                 <View>
-                    {images.length > 0 && <ImageGrid images={images} />}
+                    {images.length > 0 && <ImageGrid router={router} images={images} />}
                 </View>
 
                 {/* loading */}
                 <View style={{ marginBottom: 70, marginTop: images.length > 0 ? 10 : 70 }}>
-                    <ActivityIndicator size='large' />
+                    {status === 'loading' && <ActivityIndicator size='large' />}
                 </View>
             </ScrollView>
 
